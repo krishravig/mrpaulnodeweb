@@ -1,2 +1,4 @@
-# mrpaulnodeweb
-Node app for customer support
+krakenapp
+===========
+
+simple kraken app

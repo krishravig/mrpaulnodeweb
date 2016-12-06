@@ -12,9 +12,10 @@ var PythonShell = require('python-shell');
 
 var options = {
     mode: 'text',
-    pythonPath: '/usr/bin/python',
+    pythonPath: '/usr/local/bin/python3',
     pythonOptions: ['-u'],
-    scriptPath: '/Users/ravkrishnan/krakenapp/scripts/'
+    scriptPath: '/Users/ravkrishnan/krakenapp/scripts/',
+    args:['Did not receive my TV.']
 };
 
 
@@ -80,7 +81,7 @@ module.exports = function (router) {
 
     router.get('/message', function (req, res) {
 
-        PythonShell.run('sample.py', options, function (err, results) {
+        PythonShell.run('Weighted_Classifier.py', options, function (err, results) {
             if (err) throw err;
             // results is an array consisting of messages collected during execution
             console.log('results:', results);
