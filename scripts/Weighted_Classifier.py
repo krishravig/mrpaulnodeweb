@@ -1,29 +1,22 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[10]:
 
-#import os
-import pickle
 import sys
+import pickle
 from textblob import TextBlob
 
 
-# In[2]:
-
-#os.chdir('C:/Users/sichuang/Documents/Hackathon/Code')
-
-
-# In[3]:
+# In[11]:
 
 def split_into_lemmas(comment):
-    #comment = unicode(comment, 'utf8').lower()
     words = TextBlob(comment).words
-    # for each word, take its "base form" = lemma
+    # for each word, take its "base form" = lemma 
     return [word.lemma for word in words]
 
 
-# In[4]:
+# In[12]:
 
 def tfidf_trans(bow_transformer, tfidf_transformer, comments):
     comment_bow = bow_transformer.transform(comments)
@@ -31,18 +24,19 @@ def tfidf_trans(bow_transformer, tfidf_transformer, comments):
     return comment_tfidf
 
 
-# In[5]:
+# In[13]:
 
 with open('/Users/ravkrishnan/krakenapp/scripts/comment_classifier.pkl', 'rb') as f:
     bow_transformer, tfidf_transformer, cl = pickle.load(f)
 
 
-# In[6]:
+# In[14]:
 
-comment = str(sys.argv)[1]
 #comment = 'Did not receive my TV.'
+comment = str(sys.argv)[1]
 
-# In[7]:
+
+# In[15]:
 
 print(cl.predict(tfidf_trans(bow_transformer, tfidf_transformer, [comment]))[0])
 
