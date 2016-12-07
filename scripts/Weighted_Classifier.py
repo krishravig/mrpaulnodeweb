@@ -26,7 +26,7 @@ comment = str(sys.argv)[1]
 
 ind = None
 if sum(faq['TITLE'].str.contains(comment, case=False)) > 0:
-    ind = np.where([faq['TITLE'].str.contains(comment, case=False)])[0][0]
+    ind = np.where([faq['TITLE'].str.contains(comment, case=False)])[1][0]
     
 if ind is not None:
     print(faq['CONTENT'][ind])
