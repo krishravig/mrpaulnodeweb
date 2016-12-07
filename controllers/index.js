@@ -4,7 +4,7 @@ var IndexModel = require('../models/index');
 var Wit = require('node-wit').Wit;
 var log = require('node-wit').log;
 //const WIT_TOKEN = "FOIYGF3YNV2TI3JR23B3NPWM2U632WSJ";
-const WIT_TOKEN= "L47UC7Z4WTN7X6I4UQEWSFH2MTWVXEZJ";
+const WIT_TOKEN= "QZ6Y3AXEEVJD4XGSQKENRZLEUIYDRUMD";
 const sessionId = 'my-user-session-01';
 const context = {};
 
@@ -14,12 +14,14 @@ var options = {
     mode: 'text',
     pythonPath: '/usr/local/bin/python3',
     pythonOptions: ['-u'],
-    scriptPath: '/Users/ravkrishnan/krakenapp/scripts/',
-    args:['Did not receive my TV.']
+    scriptPath: '/Users/ravkrishnan/krakenapp/scripts/'
+
 };
 
 
 var responseText ;
+var counter;
+var allow = false;
 
 const firstEntityValue = (entities, entity) => {
     const val = entities && entities[entity] &&
@@ -46,19 +48,14 @@ const actions = {
 
         });
     },
-    getWeather({sessionId, context, text, entities}) {
-        //console.log(`Session ${sessionId} received ${text}`);
-        //console.log(`The current context is ${JSON.stringify(context)}`);
-        //console.log(`Wit extracted ${JSON.stringify(entities)}`);
+    createCase({sessionId, context, text, entities}) {
         return new Promise(function(resolve, reject) {
-            var location = firstEntityValue(entities, 'location')
-            if (location) {
-                context.weather = 'sunny in ' + location; // we should call a weather API here
-                //context.forecast = 'sunny';
-                delete context.missingWeather;
-            } else {
-                context.missingWeather = true;
-                delete context.weather;
+            var txn_id = firstEntityValue(entities, 'txn_id')
+            if (txn_id) {
+
+            //   call Create Case API and perform the action
+            // context.response = 'success';
+
             }
             return resolve(context);
         });
@@ -81,18 +78,14 @@ module.exports = function (router) {
 
     router.get('/message', function (req, res) {
 
-        PythonShell.run('Weighted_Classifier.py', options, function (err, results) {
-            if (err) throw err;
-            // results is an array consisting of messages collected during execution
-            console.log('results:', results);
-        });
-
-        res.send('Hello world');
+        res.send('Hello, how can i help you today?');
+        counter = 1;
 
     });
 
     // Message handler
     router.post('/message', function (req, res) {
+        var pyoutput ="";
         // Parse the Messenger payload
         // See the Webhook reference
         // https://developers.facebook.com/docs/messenger-platform/webhook-reference
@@ -102,38 +95,66 @@ module.exports = function (router) {
         console.log(data.message)
 
         if (data.message != undefined) {
-            //console.log("inside page");
-            // We retrieve the message content
-            const text = data.message;
-            // We received a text message
-            // Let's forward the message to the Wit.ai Bot Engine
-            // This will run all actions until our bot has nothing left to do
-        //     wit.converse(sessionId, text, {})
-        //         .then((rsp) => {
-        //
-        //         console.log('Yay, got Wit.ai response: ' + JSON.stringify(rsp));
-        //     res.writeHead(200, {"Content-Type": "text/plain"});
-        //     res.end(rsp.msg);
-        //
-        // })
-        // .catch((err) => {
-        //                  console.error('Oops! Got an error from Wit: ', err.stack || err);
-        //          })
-            wit.runActions(
-                sessionId, // the user's current session
-                text, // the user's message
-                context // the user's current session state
-            ).then((context) => {
-                // Our bot did everything it has to do.
-                // Now it's waiting for further messages to proceed.
-                res.writeHead(200, {"Content-Type": "text/plain"});
-                res.end(responseText);
-                responseText="";
-                 console.log('Waiting for next user messages');
-        })
-        .catch((err) => {
-                console.error('Oops! Got an error from Wit: ', err.stack || err);
-        })
+
+            var text = data.message;
+
+            if ( counter == 1) {
+                options.args = [text];
+
+                PythonShell.run('Weighted_Classifier.py', options, function (err, results) {
+                    if (err) throw err;
+                    // results is an array consisting of messages collected during execution
+                    pyoutput = results.toString();
+                    if (pyoutput == 'inr' || pyoutput == 'snad')
+                        allow = true;
+                    counter++;
+                    if (allow) {
+                        wit.runActions(
+                            sessionId, // the user's current session
+                            pyoutput, // the user's message
+                            context // the user's current session state
+                        ).then((context) => {
+                            // Our bot did everything it has to do.
+                            // Now it's waiting for further messages to proceed.
+                            res.writeHead(200, {"Content-Type": "text/plain"});
+                        res.end(responseText);
+                        responseText = "";
+                        console.log('Waiting for next user messages');
+                    })
+                    .
+                        catch((err) => {
+                            console.error('Oops! Got an error from Wit: ', err.stack || err);
+                    })
+                    }
+                    else {
+                        res.writeHead(200, {"Content-Type": "text/plain"});
+                        res.end(pyoutput);
+
+                    }
+
+                    //res.send(results);
+                });
+
+            }
+            else {
+                wit.runActions(
+                    sessionId, // the user's current session
+                    text, // the user's message
+                    context // the user's current session state
+                ).then((context) => {
+                    // Our bot did everything it has to do.
+                    // Now it's waiting for further messages to proceed.
+                    res.writeHead(200, {"Content-Type": "text/plain"});
+                    res.end(responseText);
+                    responseText = "";
+                    console.log('Waiting for next user messages');
+            })
+            .
+                catch((err) => {
+                    console.error('Oops! Got an error from Wit: ', err.stack || err);
+            })
+            }
+
             //
         }
 
