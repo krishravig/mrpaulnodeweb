@@ -5,6 +5,8 @@ from textblob import TextBlob
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
+import warnings
+warnings.filterwarnings("ignore")
 
 faq = pd.read_excel(open('/Users/ravkrishnan/krakenapp/scripts/FAQ_questions_Dump.xlsx', 'rb'), sheetname='Export Worksheet')
 
